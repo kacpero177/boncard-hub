@@ -23,17 +23,17 @@ Route::redirect('/dashboard', '/');
 // =========================================================================
 Route::middleware(['auth'])->group(function () {
     
-    // Twój oryginalny dashboard na stronie głównej
+    // Twój oryginalny dashboard na stronie głównej - ZOSTAJE W 100% TAK JAK MIAŁEŚ
     Route::get('/', [CardController::class, 'index'])->name('dashboard');
 
-    // Trasy zasobów dla kart podpięte pod odpowiednie metody kontrolera
-    Route::get('/cards/create', [CardController::class, 'create']);
-    Route::post('/cards', [CardController::class, 'store']);
-    Route::get('/cards/{id}', [CardController::class, 'show']);
-    Route::get('/cards/{id}/edit', [CardController::class, 'edit']);
-    Route::put('/cards/{id}', [CardController::class, 'update']);
-    Route::delete('/cards/{id}', [CardController::class, 'destroy']); // Blokowanie/odblokowanie karty
+    // Trasy zasobów dla kart podpięte pod odpowiednie metody kontrolera z jawnymi nazwami
+    Route::get('/cards/create', [CardController::class, 'create'])->name('cards.create');
+    Route::post('/cards', [CardController::class, 'store'])->name('cards.store');
+    Route::get('/cards/{id}', [CardController::class, 'show'])->name('cards.show');
+    Route::get('/cards/{id}/edit', [CardController::class, 'edit'])->name('cards.edit');
+    Route::put('/cards/{id}', [CardController::class, 'update'])->name('cards.update');
+    Route::delete('/cards/{id}', [CardController::class, 'destroy'])->name('cards.destroy'); // Blokowanie/odblokowanie karty
 
     // Bezpieczne, trwałe usuwanie powiązań bazy danych
-    Route::delete('/cards/{id}/force', [CardController::class, 'forceDelete']);
+    Route::delete('/cards/{id}/force', [CardController::class, 'forceDelete'])->name('cards.forceDelete');
 });

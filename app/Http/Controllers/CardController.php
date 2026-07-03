@@ -6,9 +6,21 @@ use App\Models\Card;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class CardController extends Controller
+class CardController extends Controller implements HasMiddleware
 {
+    /**
+     * Wymuszenie autoryzacji dla wszystkich operacji w kontrolerze (Laravel 11+).
+     */
+    public static function middleware(): array
+    {
+        return [
+            'auth',
+        ];
+    }
+
     /**
      * Wyświetlanie listy kart (Dashboard) z filtrami i statystykami
      */
@@ -61,7 +73,7 @@ class CardController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'card_number'     => 'required|string|size:20|unique:cards,card_number',
             'pin'             => 'required|string|size:4',
             'balance'         => 'required|numeric|min:0|max:999999999',
@@ -71,13 +83,13 @@ class CardController extends Controller
 
         $polskiCzas = Carbon::now('Europe/Warsaw')->format('Y-m-d H:i:s');
 
-        $activationDate = Carbon::parse($request->input('activation_date'))->format('Y-m-d H:i:s');
-        $expirationDate = Carbon::parse($request->input('expiration_date'))->format('Y-m-d H:i:s');
+        $activationDate = Carbon::parse($validated['activation_date'])->format('Y-m-d H:i:s');
+        $expirationDate = Carbon::parse($validated['expiration_date'])->format('Y-m-d H:i:s');
 
         $card = Card::create([
-            'card_number'     => $request->input('card_number'),
-            'pin'             => $request->input('pin'),
-            'balance'         => $request->input('balance'),
+            'card_number'     => $validated['card_number'],
+            'pin'             => $validated['pin'],
+            'balance'         => $validated['balance'],
             'activation_date' => $activationDate,
             'expiration_date' => $expirationDate,
             'is_active'       => true,
@@ -112,7 +124,7 @@ class CardController extends Controller
     {
         $card = Card::findOrFail($id);
 
-        $request->validate([
+        $validated = $request->validate([
             'card_number'     => 'required|string|size:20|unique:cards,card_number,' . $card->id,
             'pin'             => 'required|string|size:4',
             'balance'         => 'required|numeric|min:0|max:999999999',
@@ -126,15 +138,15 @@ class CardController extends Controller
         $oldActivation = Carbon::parse($card->activation_date)->format('Y-m-d H:i:s');
         $oldExpiration = Carbon::parse($card->expiration_date)->format('Y-m-d H:i:s');
 
-        $newActivation = Carbon::parse($request->input('activation_date'))->format('Y-m-d H:i:s');
-        $newExpiration = Carbon::parse($request->input('expiration_date'))->format('Y-m-d H:i:s');
-        $newBalance = (float)$request->input('balance');
+        $newActivation = Carbon::parse($validated['activation_date'])->format('Y-m-d H:i:s');
+        $newExpiration = Carbon::parse($validated['expiration_date'])->format('Y-m-d H:i:s');
+        $newBalance = (float)$validated['balance'];
 
         $polskiCzas = Carbon::now('Europe/Warsaw')->format('Y-m-d H:i:s');
 
         $card->update([
-            'card_number'     => $request->input('card_number'),
-            'pin'             => $request->input('pin'),
+            'card_number'     => $validated['card_number'],
+            'pin'             => $validated['pin'],
             'balance'         => $newBalance,
             'activation_date' => $newActivation,
             'expiration_date' => $newExpiration,
@@ -143,27 +155,28 @@ class CardController extends Controller
 
         $changes = [];
         
-        if ($oldCardNumber !== $request->input('card_number')) {
-            $changes[] = "Card Number: {$oldCardNumber} &rarr; " . $request->input('card_number');
+        if ($oldCardNumber !== $validated['card_number']) {
+            $changes[] = "Card Number: {$oldCardNumber} -> " . $validated['card_number'];
         }
-        if ($oldPin !== $request->input('pin')) {
-            $changes[] = "PIN Code: {$oldPin} &rarr; " . $request->input('pin');
+        if ($oldPin !== $validated['pin']) {
+            $changes[] = "PIN Code: {$oldPin} -> " . $validated['pin'];
         }
         if ($oldActivation !== $newActivation) {
-            $changes[] = "Activation Date: {$oldActivation} &rarr; {$newActivation}";
+            $changes[] = "Activation Date: {$oldActivation} -> {$newActivation}";
         }
         if ($oldExpiration !== $newExpiration) {
-            $changes[] = "Expiration Date: {$oldExpiration} &rarr; {$newExpiration}";
+            $changes[] = "Expiration Date: {$oldExpiration} -> {$newExpiration}";
         }
 
         $balanceDiff = $newBalance - $oldBalance;
         if ($balanceDiff !== 0.0) {
             $formattedDiff = ($balanceDiff > 0 ? '+' : '') . number_format($balanceDiff, 2, '.', '') . ' PLN';
-            $changes[] = "Balance: {$oldBalance} PLN &rarr; {$newBalance} PLN ({$formattedDiff})";
+            $changes[] = "Balance: {$oldBalance} PLN -> {$newBalance} PLN ({$formattedDiff})";
         }
 
         if (!empty($changes)) {
-            if ($request->input('is_admin') == '1') {
+            // Bezpieczna weryfikacja roli na podstawie sesji użytkownika zamiast ukrytego pola w request
+            if (auth()->user() && auth()->user()->is_admin) {
                 $title = "Card updated by administrator";
             } else {
                 $title = "Card details modified";

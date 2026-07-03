@@ -196,11 +196,11 @@
                                             <span class="small font-monospace custom-muted ms-2" style="white-space: nowrap;">{{ $transaction->created_at }}</span>
                                         </div>
                                         
-                                        {{-- Jeśli istnieją dodatkowe szczegóły edycji, wyświetlamy je jako ładną listę --}}
+                                        {{-- Jeśli istnieją dodatkowe szczegóły edycji, wyświetlamy je jako ładną listę (Teraz bezpiecznie escapowaną) --}}
                                         @if(count($parts) > 1)
                                             <ul class="list-unstyled ps-2 mb-3 border-start border-2 border-secondary small custom-muted">
                                                 @for($i = 1; $i < count($parts); $i++)
-                                                    <li class="mb-1">&bull; {!! $parts[$i] !!}</li>
+                                                    <li class="mb-1">&bull; {{ $parts[$i] }}</li>
                                                 @endfor
                                             </ul>
                                         @endif
