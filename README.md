@@ -1,5 +1,16 @@
 # BonCard Hub - Gift Card Management System
 
+## 📸 Application Preview
+<img src="https://github.com/user-attachments/assets/2ef4250e-efbc-405f-aab0-34c9576c6381" width="100%">
+<img src="https://github.com/user-attachments/assets/59ed3d03-fdb5-47c0-9e63-228b47dbf5e9" width="100%">
+<img src="https://github.com/user-attachments/assets/5be70cdd-af13-4f35-ac99-e96d7a6c8579" width="100%">
+<img src="https://github.com/user-attachments/assets/33100b81-5dd6-4b98-bd76-8fce60d8212b" width="100%">
+
+BonCard Hub is a secure web application...
+
+
+# BonCard Hub - Gift Card Management System
+
 BonCard Hub is a secure web application built with **Laravel 11** and **Laravel Breeze** (Blade & Tailwind CSS) designed for managing internal gift cards, tracking their live balances, and maintaining a robust system audit log.
 
 The application has been fully patched against security threats including **Stored Cross-Site Scripting (XSS)** and **Privilege Escalation**, ensuring that all input handling and server-side operations follow industry-standard security practices.
